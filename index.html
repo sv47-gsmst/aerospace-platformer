@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbital Cadet</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            /* V4 CHANGE: Prevent touch highlighting on mobile */
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        body {
+            background: radial-gradient(circle at top, #0b0f2a, #000000);
+            font-family: 'Press Start 2P', cursive;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            /* V4 CHANGE: Disable text selection */
+            user-select: none; 
+        }
+
+        .title {
+            margin-bottom: 20px; 
+            font-size: 28px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px #1e90ff;
+            text-align: center;
+        }
+
+        .game-wrapper {
+            text-align: center;
+            position: relative;
+            width: 100vw; 
+            height: 100vh; 
+            max-width: 900px; 
+            max-height: 600px; 
+            aspect-ratio: 900 / 600; 
+        }
+
+        #menu-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 40px;
+            border: 2px solid #1e90ff;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(30, 144, 255, 0.5);
+            text-align: center; /* V4 CHANGE: Center align for stats */
+        }
+
+        /* V4 CHANGE: High score display styling */
+        #high-score-display {
+            font-size: 12px;
+            color: #00f2fe;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        #menu-container button {
+            padding: 15px 20px;
+            font-size: 14px;
+            font-family: 'Press Start 2P', cursive;
+            cursor: pointer;
+            background-color: #1e90ff;
+            color: #0b0f2a;
+            border: none;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        #menu-container button:hover {
+            background-color: #00f2fe;
+            box-shadow: 0 0 15px #00f2fe;
+        }
+
+        /* V4 CHANGE: Level Select Row Styling */
+        #level-select-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            max-width: 300px;
+            margin: 10px auto 0 auto;
+        }
+        
+        .level-btn {
+            padding: 10px !important;
+            font-size: 12px !important;
+        }
+        .locked-level {
+            background-color: #555 !important;
+            color: #222 !important;
+            cursor: not-allowed !important;
+            box-shadow: none !important;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%; 
+            height: 100%; 
+            border: 2px solid #1e90ff;
+            box-shadow: 0 0 20px rgba(30, 144, 255, 0.5);
+            border-radius: 8px;
+            overflow: hidden;
+            display: none;
+            background: linear-gradient(to bottom, #0b0f2a 0%, #1a1a3a 100%);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #ui {
+            position: absolute;
+            top: 15px;
+            left: 2%; 
+            width: 96%; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center; 
+            pointer-events: none;
+            text-shadow: 2px 2px 0 #000;
+            font-size: 14px;
+        }
+
+        /* V4 CHANGE: Reorganized top right buttons */
+        .top-btn-group {
+            pointer-events: auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            padding: 8px 12px;
+            font-size: 10px;
+            font-family: 'Press Start 2P', cursive;
+            cursor: pointer;
+            background-color: #1e90ff;
+            color: #0b0f2a;
+            border: none;
+            border-radius: 4px;
+            transition: 0.2s;
+            display: none; 
+        }
+
+        .icon-btn:hover {
+            background-color: #00f2fe;
+            box-shadow: 0 0 10px #00f2fe;
+        }
+
+        #message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            text-shadow: 3px 3px 0 #000;
+            display: none;
+            text-align: center;
+            line-height: 1.5;
+            color: #00f2fe;
+            background: rgba(0,0,0,0.85); 
+            padding: 30px;
+            border: 2px solid #1e90ff;
+            border-radius: 8px;
+        }
+
+        .msg-btn {
+            padding: 10px 15px;
+            font-size: 12px;
+            font-family: 'Press Start 2P', cursive;
+            cursor: pointer;
+            background-color: #1e90ff;
+            color: #0b0f2a;
+            border: none;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        .msg-btn:hover {
+            background-color: #00f2fe;
+            box-shadow: 0 0 10px #00f2fe;
+        }
+
+        .controls {
+            margin-top: 20px;
+            font-size: 12px;
+            opacity: 0.7;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        /* V4 CHANGE: Mobile Controls Styling */
+        #mobile-controls {
+            display: none; /* Hidden on desktop */
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            justify-content: space-between;
+            padding: 0 20px;
+            pointer-events: none; /* Let clicks pass through empty space */
+        }
+
+        .mobile-dpad {
+            display: flex;
+            gap: 15px;
+            pointer-events: auto;
+        }
+
+        .mobile-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(30, 144, 255, 0.4);
+            border: 2px solid #1e90ff;
+            border-radius: 50%;
+            color: white;
+            font-size: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+        }
+
+        .mobile-btn:active {
+            background: rgba(0, 242, 254, 0.6);
+        }
+
+        /* Detect Mobile Screens */
+        @media (max-width: 768px) {
+            #mobile-controls {
+                display: flex;
+            }
+            .controls {
+                display: none; /* Hide text controls on mobile */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1 class="title">🚀 Orbital Cadet</h1>
+
+    <div class="game-wrapper">
+        <div id="menu-container">
+            <div id="high-score-display">Infinite High Score: 0</div>
+            <button id="infinite-btn">Infinite Mode</button>
+            
+            <div style="margin-top: 15px; font-size: 12px; color: #1e90ff;">Level Select</div>
+            <div id="level-select-row"></div>
+        </div>
+
+        <div id="game-container">
+            <div id="ui">
+                <span id="scoreDisplay">Score: 0</span>
+                <span id="modeDisplay">Level: 1</span>
+                
+                <div class="top-btn-group">
+                    <button id="mute-btn" class="icon-btn" style="display:block;">🔊</button>
+                    <button id="pause-btn" class="icon-btn">PAUSE</button>
+                </div>
+            </div>
+            
+            <div id="message"></div>
+            <canvas id="gameCanvas" width="900" height="600"></canvas>
+
+            <div id="mobile-controls">
+                <div class="mobile-dpad">
+                    <div id="btn-left" class="mobile-btn">◀</div>
+                    <div id="btn-right" class="mobile-btn">▶</div>
+                </div>
+                <div id="btn-jump" class="mobile-btn">▲</div>
+            </div>
+        </div>
+    </div>
+
+    <p class="controls" id="controls">A/D or Arrows to Move • W/Up/Space to Jump (Double Jump!)<br>Press ESC to Pause / Return</p>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreUI = document.getElementById('scoreDisplay');
+        const modeUI = document.getElementById('modeDisplay');
+        const msgUI = document.getElementById('message');
+        const menuContainer = document.getElementById('menu-container');
+        const gameContainer = document.getElementById('game-container');
+        const pauseBtn = document.getElementById('pause-btn');
+        const muteBtn = document.getElementById('mute-btn');
+        const highScoreDisplay = document.getElementById('high-score-display');
+        const levelSelectRow = document.getElementById('level-select-row');
+
+        // Physics & Core Variables
+        const gravity = 0.6, friction = 0.85;
+        let player, camera, platforms, enemies, stars, coins, flags, particles;
+        
+        let score = 0, currentLevel = 1, maxLevels = 15;
+        let distance = 0;
+        let spawnPoint = { x: 50, y: 300 }; 
+        let gameState = 'menu'; 
+        let gameMode = 'levels'; 
+        let infiniteLastX = 0;
+        let animationId;
+        let lastTime = performance.now(); 
+
+        // V4 CHANGE: Camera Screen Shake variables
+        let shakeFrames = 0;
+        let shakeIntensity = 0;
+
+        // V4 CHANGE: Local Storage Save Data Setup
+        let saveData = {
+            highScore: 0,
+            unlockedLevel: 1
+        };
+
+        function loadSaveData() {
+            let saved = localStorage.getItem('orbitalCadet_save');
+            if (saved) {
+                saveData = JSON.parse(saved);
+            }
+            highScoreDisplay.innerText = `Infinite High Score: ${saveData.highScore}m`;
+            buildLevelSelectUI();
+        }
+
+        function saveGame() {
+            localStorage.setItem('orbitalCadet_save', JSON.stringify(saveData));
+        }
+
+        // V4 CHANGE: Build the Level Select menu dynamically based on unlocks
+        function buildLevelSelectUI() {
+            levelSelectRow.innerHTML = '';
+            for(let i = 1; i <= Math.min(5, maxLevels); i++) { // Showing max 5 levels for space
+                let btn = document.createElement('button');
+                btn.className = 'level-btn ' + (i > saveData.unlockedLevel ? 'locked-level' : '');
+                btn.innerText = i;
+                if (i <= saveData.unlockedLevel) {
+                    btn.onclick = () => startGame('levels', i);
+                }
+                levelSelectRow.appendChild(btn);
+            }
+        }
+
+        loadSaveData(); // Load data on startup
+
+        // V4 CHANGE: Web Audio API & Mute Logic
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let isMuted = false;
+
+        muteBtn.onclick = () => {
+            isMuted = !isMuted;
+            muteBtn.innerText = isMuted ? '🔇' : '🔊';
+        };
+
+        function playSound(type) {
+            if (isMuted) return; // V4 CHANGE: Check for mute
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'jump') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.2); 
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+            } else if (type === 'coin') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(1200, audioCtx.currentTime + 0.1); 
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+            } else if (type === 'stomp') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1); 
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            }
+        }
+
+        function triggerShake(frames, intensity) {
+            shakeFrames = frames;
+            shakeIntensity = intensity;
+        }
+
+        // Input Handling
+        const keys = { left: false, right: false, jumpPressed: false }; // V4 CHANGE: Added jumpPressed for buffer
+
+        window.addEventListener('keydown', e => { 
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
+            if (e.code==='KeyA'||e.code==='ArrowLeft') keys.left=true; 
+            if (e.code==='KeyD'||e.code==='ArrowRight') keys.right=true; 
+            
+            if (e.code==='Escape') {
+                if (gameState === 'playing') togglePause();
+                else if (gameState === 'paused') resumeGame();
+                else if (gameState !== 'playing' && gameState !== 'transition') returnToMenu();
+            }
+
+            // V4 CHANGE: Start Jump Buffer Timer instead of jumping instantly
+            if ((e.code==='KeyW'||e.code==='ArrowUp'||e.code==='Space') && gameState === 'playing') {
+                if(player) player.jumpBufferTimer = 10; // Frames to remember the jump intent
+            }
+        });
+        
+        window.addEventListener('keyup', e => { 
+            if (e.code==='KeyA'||e.code==='ArrowLeft') keys.left=false; 
+            if (e.code==='KeyD'||e.code==='ArrowRight') keys.right=false; 
+        });
+
+        // V4 CHANGE: Mobile Touch Controls Event Listeners
+        const btnLeft = document.getElementById('btn-left');
+        const btnRight = document.getElementById('btn-right');
+        const btnJump = document.getElementById('btn-jump');
+
+        btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); keys.left = true; });
+        btnLeft.addEventListener('touchend', (e) => { e.preventDefault(); keys.left = false; });
+        btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); keys.right = true; });
+        btnRight.addEventListener('touchend', (e) => { e.preventDefault(); keys.right = false; });
+        
+        btnJump.addEventListener('touchstart', (e) => { 
+            e.preventDefault(); 
+            if (gameState === 'playing' && player) player.jumpBufferTimer = 10; 
+        });
+
+        // UI Interactions
+        document.getElementById('infinite-btn').onclick = () => startGame('infinite');
+        pauseBtn.onclick = () => togglePause();
+
+        function togglePause() {
+            if (gameState === 'playing') {
+                gameState = 'paused';
+                msgUI.innerHTML = `
+                    PAUSED<br><br>
+                    <div style="margin-top: 15px; display: flex; gap: 15px; justify-content: center;">
+                        <button class="msg-btn" onclick="resumeGame()">Resume</button>
+                        <button class="msg-btn" onclick="returnToMenu()">Exit</button>
+                    </div>`;
+                msgUI.style.display = 'block';
+            }
+        }
+
+        function resumeGame() {
+            gameState = 'playing';
+            msgUI.style.display = 'none';
+            lastTime = performance.now(); 
+        }
+
+        // V4 CHANGE: startGame now accepts an optional startLevel parameter
+        function startGame(mode, startLevel = 1) {
+            gameMode = mode;
+            score = 0;
+            currentLevel = startLevel;
+            distance = 0;
+            
+            menuContainer.style.display = 'none';
+            gameContainer.style.display = 'block';
+            msgUI.style.display = 'none';
+            pauseBtn.style.display = 'block'; 
+            
+            if (audioCtx.state === 'suspended') audioCtx.resume(); 
+            
+            if (gameMode === 'infinite') {
+                modeUI.innerText = `Distance: 0m`;
+                buildInfiniteStart();
+            } else {
+                modeUI.innerText = `Level: ${currentLevel}`;
+                buildLevel(currentLevel);
+            }
+            
+            gameState = 'playing';
+            lastTime = performance.now(); 
+            if (!animationId) loop(lastTime); 
+        }
+
+        function returnToMenu() {
+            gameState = 'menu';
+            cancelAnimationFrame(animationId);
+            animationId = null;
+            menuContainer.style.display = 'flex';
+            gameContainer.style.display = 'none';
+            msgUI.style.display = 'none';
+            loadSaveData(); // V4 CHANGE: Refresh UI on return
+        }
+
+        // V4 CHANGE: Create layers of stars for Parallax
+        function createStars() {
+            stars = [];
+            for(let i=0; i<150; i++) { 
+                stars.push({
+                    x: Math.random() * 10000, 
+                    y: Math.random() * canvas.height, 
+                    size: Math.random() * 2 + 0.5,
+                    alpha: Math.random() * 0.5 + 0.1,
+                    depth: Math.random() // Depth multiplier for parallax (0.0 to 1.0)
+                }); 
+            }
+        }
+
+        // --- LEVEL MODE LOGIC ---
+        function buildLevel(levelNum) {
+            platforms = []; enemies = []; coins = []; flags = []; particles = [];
+            spawnPoint = { x: 50, y: 300 };
+            createStars();
+            
+            let numPlatforms = 20 + (levelNum * 2);
+            let maxGap = 80 + (levelNum * 4); 
+            let minPlatWidth = Math.max(40, 120 - (levelNum * 5)); 
+            let enemyChance = Math.min(0.8, 0.2 + (levelNum * 0.04)); 
+
+            let lastX = 0; let lastY = 400;
+            for(let i=0; i<numPlatforms; i++) {
+                let pWidth = Math.random() * 100 + minPlatWidth;
+                let gapX = Math.random() * maxGap + 50; 
+                let pX = (i===0) ? 20 : lastX + gapX;
+                let pY = (i===0) ? 400 : lastY + ((Math.random() * 180) - 90);
+                if (pY > 550) pY = 550; if (pY < 200) pY = 200;
+
+                platforms.push({x: pX, y: pY, width: pWidth, height: 20});
+                
+                if (i === Math.floor(numPlatforms / 2)) {
+                    flags.push({x: pX + pWidth/2, y: pY - 60, w: 20, h: 60, type: 'checkpoint', active: true, color: '#00FF00'});
+                }
+                
+                if (i === numPlatforms - 1) {
+                    flags.push({x: pX + pWidth/2, y: pY - 80, w: 40, h: 80, type: 'end', active: true, color: '#FF00FF'});
+                }
+
+                if (i > 0 && i !== numPlatforms - 1 && Math.random() > 0.3) {
+                    coins.push({x: pX + (pWidth/2) - 10, y: pY - 30, w: 15, h: 15, collected: false});
+                }
+
+                if (i > 0 && i !== Math.floor(numPlatforms/2) && Math.random() < enemyChance && pWidth > 80) {
+                    enemies.push({x: pX + pWidth/2, y: pY - 30, width: 30, height: 30, speed: 1 + (levelNum*0.1), dir: 1, minX: pX, maxX: pX + pWidth - 30, active: true});
+                }
+                lastX = pX + pWidth; lastY = pY;
+            }
+            scoreUI.innerText = `Score: ${score}`;
+            resetPlayer();
+        }
+
+        // --- INFINITE MODE LOGIC ---
+        function buildInfiniteStart() {
+            platforms = []; enemies = []; coins = []; flags = []; particles = [];
+            spawnPoint = { x: 50, y: 300 };
+            createStars();
+            
+            platforms.push({x: 20, y: 400, width: 200, height: 20});
+            infiniteLastX = 220;
+            
+            for(let i=0; i<10; i++) {
+                addInfinitePlatform();
+            }
+            scoreUI.innerText = `Score: 0`;
+            resetPlayer();
+        }
+
+        function addInfinitePlatform() {
+            let pWidth = Math.random() * 100 + 60;
+            let gapX = Math.random() * 150 + 50; 
+            let pX = infiniteLastX + gapX;
+            
+            let lastPlat = platforms[platforms.length-1];
+            let lastY = lastPlat ? lastPlat.y : 400;
+            let pY = lastY + ((Math.random() * 180) - 90);
+            
+            if (pY > 550) pY = 550; 
+            if (pY < 200) pY = 200;
+
+            platforms.push({x: pX, y: pY, width: pWidth, height: 20});
+            
+            if (Math.random() > 0.4) {
+                coins.push({x: pX + (pWidth/2) - 10, y: pY - 30, w: 15, h: 15, collected: false});
+            }
+
+            if (Math.random() > 0.6 && pWidth > 80) {
+                enemies.push({x: pX + pWidth/2, y: pY - 30, width: 30, height: 30, speed: 1.5 + (distance/2000), dir: 1, minX: pX, maxX: pX + pWidth - 30, active: true});
+            }
+
+            infiniteLastX = pX + pWidth;
+        }
+
+        function cleanupInfinite() {
+            let cleanupThreshold = camera.x - 500;
+            platforms = platforms.filter(p => p.x + p.width > cleanupThreshold);
+            coins = coins.filter(c => c.x + c.w > cleanupThreshold);
+            enemies = enemies.filter(e => e.x + e.width > cleanupThreshold);
+        }
+
+        // --- PLAYER LOGIC ---
+        function resetPlayer() {
+            // V4 CHANGE: Added coyoteTimer, jumpBufferTimer, and emitTimer
+            player = { x: spawnPoint.x, y: spawnPoint.y - 50, width: 30, height: 40, dx: 0, dy: 0, speed: 1.5, jumpForce: 11, grounded: false, jumps: 0, maxJumps: 2, coyoteTimer: 0, jumpBufferTimer: 0, emitTimer: 0 };
+            camera = { x: Math.max(0, player.x - (canvas.width/3)), smoothing: 0.1 }; 
+            enemies.forEach(e => e.active = true);
+        }
+
+        function nextLevel() {
+            // V4 CHANGE: Update LocalStorage if new level is unlocked
+            if (currentLevel + 1 > saveData.unlockedLevel) {
+                saveData.unlockedLevel = currentLevel + 1;
+                saveGame();
+            }
+
+            currentLevel++;
+            if (currentLevel > maxLevels) {
+                gameState = 'won';
+                msgUI.innerHTML = `
+                    MISSION ACCOMPLISHED!<br><br>Final Score: ${score}<br><br>
+                    <button class="msg-btn" style="margin-top:15px;" onclick="returnToMenu()">Return to Menu</button>`;
+                msgUI.style.display = 'block';
+            } else {
+                gameState = 'transition';
+                msgUI.innerHTML = `ORBIT REACHED<br><br>Warping to Level ${currentLevel}...`;
+                msgUI.style.display = 'block';
+                modeUI.innerText = `Level: ${currentLevel}`;
+                setTimeout(() => {
+                    if(gameState === 'transition') {
+                        msgUI.style.display = 'none';
+                        buildLevel(currentLevel);
+                        gameState = 'playing';
+                        lastTime = performance.now(); 
+                    }
+                }, 1500);
+            }
+        }
+
+        function gameOver() {
+            gameState = 'gameover';
+            
+            // V4 CHANGE: Check and save High Score
+            if (gameMode === 'infinite' && distance > saveData.highScore) {
+                saveData.highScore = distance;
+                saveGame();
+            }
+
+            msgUI.innerHTML = `
+                LOST IN SPACE<br><br>Score: ${score}<br>Distance: ${distance}m<br><br>
+                <div style="margin-top: 15px; display: flex; gap: 15px; justify-content: center;">
+                    <button class="msg-btn" onclick="startGame('${gameMode}', ${currentLevel})">Retry</button>
+                    <button class="msg-btn" onclick="returnToMenu()">Menu</button>
+                </div>`;
+            msgUI.style.display = 'block';
+            triggerShake(15, 10); // V4 CHANGE: Big shake on death
+            playSound('stomp');
+        }
+
+        // --- MAIN LOOP ---
+        function loop(timestamp) {
+            
+            let dt = (timestamp - lastTime) / (1000 / 60); 
+            if (dt > 3) dt = 3; 
+            lastTime = timestamp;
+
+            if (gameState === 'playing') {
+                if (keys.left) player.dx -= player.speed * dt; 
+                if (keys.right) player.dx += player.speed * dt;
+                
+                player.dx *= Math.pow(friction, dt);
+                player.dy += gravity * dt; 
+                player.x += player.dx * dt; 
+                player.y += player.dy * dt; 
+                
+                // V4 CHANGE: Decrease timers
+                if (player.coyoteTimer > 0) player.coyoteTimer -= dt;
+                if (player.jumpBufferTimer > 0) player.jumpBufferTimer -= dt;
+
+                // V4 CHANGE: Jump Logic utilizing Buffer and Coyote Time
+                if (player.jumpBufferTimer > 0) {
+                    if (player.coyoteTimer > 0 || (player.jumps > 0 && player.jumps < player.maxJumps)) {
+                        player.dy = -player.jumpForce;
+                        player.jumps++;
+                        player.coyoteTimer = 0; // Consume coyote time
+                        player.jumpBufferTimer = 0; // Consume buffer
+                        
+                        playSound('jump'); 
+
+                        for(let i=0; i<10; i++) {
+                            particles.push({
+                                x: player.x + player.width / 2, y: player.y + player.height,
+                                dx: (Math.random() - 0.5) * 4, dy: Math.random() * 2 + 1, life: 20
+                            });
+                        }
+                    }
+                }
+
+                // V4 CHANGE: Spawn Particle Trail if moving fast
+                if (Math.abs(player.dx) > 1 && player.grounded) {
+                    player.emitTimer -= dt;
+                    if (player.emitTimer <= 0) {
+                        particles.push({
+                            x: player.x + player.width / 2, y: player.y + player.height,
+                            dx: -player.dx * 0.2 + (Math.random()-0.5), dy: Math.random(), life: 10
+                        });
+                        player.emitTimer = 3; // Emit every ~3 frames
+                    }
+                }
+                
+                if (player.y > canvas.height + 50) { 
+                    gameOver();
+                }
+
+                let targetCamX = player.x - (canvas.width / 3); 
+                if (targetCamX < 0 && gameMode === 'levels') targetCamX = 0; 
+                camera.x += (targetCamX - camera.x) * camera.smoothing;
+
+                if (gameMode === 'infinite') {
+                    if (player.x > distance) {
+                        distance = Math.floor(player.x / 10);
+                        modeUI.innerText = `Distance: ${distance}m`;
+                    }
+                    if (camera.x + 1200 > infiniteLastX) {
+                        addInfinitePlatform();
+                        cleanupInfinite();
+                    }
+                }
+
+                player.grounded = false; // Reset before collision check
+
+                platforms.forEach(p => {
+                    if (player.x < p.x + p.width && player.x + player.width > p.x && player.y < p.y + p.height && player.y + player.height > p.y) {
+                        if (player.dy >= 0 && (player.y - player.dy + player.height) <= p.y + 15) { 
+                            player.y = p.y - player.height; 
+                            player.dy = 0; 
+                            player.grounded = true; 
+                            player.jumps = 0; 
+                            player.coyoteTimer = 8; // V4 CHANGE: Refresh Coyote time
+                        }
+                    }
+                });
+
+                coins.forEach(c => {
+                    if (!c.collected && player.x < c.x + c.w && player.x + player.width > c.x && player.y < c.y + c.h && player.y + player.height > c.y) {
+                        c.collected = true; 
+                        score += 10; 
+                        scoreUI.innerText = `Score: ${score}`;
+                        playSound('coin'); 
+                    }
+                });
+
+                flags.forEach(f => {
+                    if (f.active && player.x < f.x + f.w && player.x + player.width > f.x && player.y < f.y + f.h && player.y + player.height > f.y) {
+                        if (f.type === 'checkpoint') { 
+                            spawnPoint = { x: f.x, y: f.y + f.h }; 
+                            f.color = '#00FA9A'; 
+                            f.active = false; 
+                        } else if (f.type === 'end') { 
+                            nextLevel(); 
+                        }
+                    }
+                });
+
+                enemies.forEach(e => {
+                    if (!e.active) return;
+                    e.x += e.speed * e.dir * dt; 
+                    if (e.x <= e.minX || e.x >= e.maxX) e.dir *= -1; 
+
+                    if (player.x < e.x + e.width && player.x + player.width > e.x && player.y < e.y + e.height && player.y + player.height > e.y) {
+                        if (player.dy > 0 && (player.y + player.height - player.dy) <= e.y + 15) {
+                            e.active = false; 
+                            player.dy = -10; 
+                            score += 50; 
+                            scoreUI.innerText = `Score: ${score}`;
+                            playSound('stomp'); 
+                            triggerShake(5, 5); // V4 CHANGE: Small screen shake
+                        } else { 
+                            gameOver();
+                        }
+                    }
+                });
+
+                particles.forEach(p => {
+                    p.x += p.dx * dt; 
+                    p.y += p.dy * dt;
+                    p.life -= 1 * dt;
+                });
+                particles = particles.filter(p => p.life > 0);
+            }
+
+            // --- DRAWING ---
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save(); 
+            
+            // V4 CHANGE: Apply Screen Shake if active
+            if (shakeFrames > 0 && gameState === 'playing') {
+                let dx = (Math.random() - 0.5) * shakeIntensity;
+                let dy = (Math.random() - 0.5) * shakeIntensity;
+                ctx.translate(dx, dy);
+                shakeFrames--;
+            }
+            
+            // V4 CHANGE: True Parallax Background logic
+            stars.forEach(s => {
+                ctx.fillStyle = `rgba(255, 255, 255, ${s.alpha})`;
+                // Move stars based on their depth!
+                let renderX = (s.x - (camera.x * (0.02 + (s.depth * 0.08)))) % 10000;
+                if(renderX < -100) renderX += 10000; // Loop them around
+                ctx.fillRect(renderX, s.y, s.size, s.size);
+            });
+
+            ctx.save(); 
+            ctx.translate(-camera.x, 0);
+            
+            platforms.forEach(p => {
+                ctx.fillStyle = 'rgba(30, 144, 255, 0.2)';
+                ctx.fillRect(p.x, p.y, p.width, p.height);
+                ctx.fillStyle = '#1e90ff';
+                ctx.fillRect(p.x, p.y, p.width, 4);
+                ctx.strokeStyle = '#00f2fe';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(p.x, p.y, p.width, p.height);
+            });
+            
+            ctx.fillStyle = '#00f2fe'; 
+            coins.forEach(c => { 
+                if (!c.collected) { 
+                    ctx.beginPath(); 
+                    ctx.moveTo(c.x + c.w/2, c.y);
+                    ctx.lineTo(c.x + c.w, c.y + c.h/2);
+                    ctx.lineTo(c.x + c.w/2, c.y + c.h);
+                    ctx.lineTo(c.x, c.y + c.h/2);
+                    ctx.fill(); 
+                }
+            });
+            
+            flags.forEach(f => {
+                if(f.type === 'end') {
+                    ctx.fillStyle = f.color; 
+                    ctx.beginPath();
+                    ctx.ellipse(f.x + f.w/2, f.y + f.h/2, f.w/2, f.h/2, 0, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                    ctx.beginPath();
+                    ctx.ellipse(f.x + f.w/2, f.y + f.h/2, f.w/4, f.h/4, 0, 0, Math.PI*2);
+                    ctx.fill();
+                } else {
+                    ctx.fillStyle = '#555'; ctx.fillRect(f.x, f.y, 4, f.h); 
+                    ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(f.x + 2, f.y, 6, 0, Math.PI*2); ctx.fill();
+                }
+            });
+
+            ctx.fillStyle = '#ff4500'; 
+            enemies.forEach(e => { 
+                if(e.active) {
+                    ctx.fillRect(e.x, e.y, e.width, e.height); 
+                    ctx.fillStyle = 'yellow';
+                    let eyeX = e.dir === 1 ? e.x + 18 : e.x + 4;
+                    ctx.fillRect(eyeX, e.y + 5, 8, 8);
+                    ctx.fillStyle = '#ff4500';
+                }
+            });
+
+            particles.forEach(p => {
+                ctx.fillStyle = `rgba(255, 165, 0, ${Math.max(0, p.life) / 20})`; 
+                ctx.fillRect(p.x, p.y, 4, 4);
+            });
+
+            ctx.fillStyle = '#ffffff'; 
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            ctx.fillStyle = '#00f2fe'; 
+            let visorX = player.dx >= 0 ? player.x + 12 : player.x + 2;
+            ctx.fillRect(visorX, player.y + 6, 16, 10);
+            
+            ctx.fillStyle = 'rgba(255, 69, 0, 0.4)';
+            ctx.fillRect(camera.x, canvas.height - 20, canvas.width, 20);
+            ctx.fillStyle = '#ff4500';
+            ctx.fillRect(camera.x, canvas.height - 5, canvas.width, 5);
+
+            ctx.restore(); // Restore camera translation
+            ctx.restore(); // Restore shake translation
+            
+            if (gameState !== 'menu') {
+                animationId = requestAnimationFrame(loop);
+            }
+        }
+    </script>
+</body>
+</html>
